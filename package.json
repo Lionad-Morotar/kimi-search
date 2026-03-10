@@ -1,6 +1,6 @@
 {
   "name": "@lionad/kimi-search",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "MCP server for kimi search integration",
   "type": "module",
   "main": "dist/index.js",

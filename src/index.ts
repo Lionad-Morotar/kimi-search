@@ -92,7 +92,7 @@ async function executeKimiAgent(_instruction: string): Promise<string> {
 // 创建 MCP 服务器实例
 const server = new McpServer({
   name: "kimi-search-mcp-server",
-  version: "1.0.0"
+  version: "0.0.1"
 });
 
 // 注册 kimi-search 工具
