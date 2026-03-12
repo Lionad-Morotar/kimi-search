@@ -56,7 +56,15 @@ const AgentInstructionSchema = z.object({
 ---`)
 }).strict();
 
+// kimi-fetch 输入模式
+const FetchUrlSchema = z.object({
+  url: z.string()
+    .min(1, "URL 不能为空")
+    .describe("要获取内容的网页 URL 地址")
+}).strict();
+
 type AgentInstruction = z.infer<typeof AgentInstructionSchema>;
+type FetchUrlInput = z.infer<typeof FetchUrlSchema>;
 
 // 执行 kimi-search 任务
 async function executeKimiAgent(_instruction: string): Promise<string> {
@@ -84,6 +92,53 @@ async function executeKimiAgent(_instruction: string): Promise<string> {
         throw new Error("任务执行超时。kimi-search 可能需要更长时间处理复杂任务，请稍后重试或简化任务。");
       }
       throw new Error(`任务执行失败: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+// 执行 kimi-fetch 任务 - 获取单个 URL 的页面内容
+async function executeKimiFetch(url: string): Promise<string> {
+  const instruction = `获取并以 md 格式返回结构化的页面内容：
+
+URL: ${url}
+
+要求：
+1. 使用 WebFetch 或浏览器工具获取页面完整内容
+2. 提取页面的核心信息（标题、主要内容、关键数据等）
+3. 返回格式化的 markdown，包括：
+   - 页面标题
+   - 内容摘要
+   - 结构化正文（保留重要段落、列表、代码块等）
+   - 关键链接（如有）
+4. 过滤掉广告、导航栏、页脚等无关内容
+5. 不要修改或注释页面内容
+
+直接返回 markdown 格式的内容，不要添加额外的解释。`;
+
+  try {
+    const { stdout } = await execFileAsync("kimi", [
+      "-p",
+      instruction,
+      "--print",
+      "--output-format",
+      "stream-json",
+      "--final-message-only"
+    ], {
+      timeout: 40000,
+      maxBuffer: 10 * 1024 * 1024 // 10MB 缓冲区
+    });
+
+    return stdout.trim();
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes("ENOENT")) {
+        throw new Error("未找到 kimi 命令。请确保 kimi CLI 已安装并添加到 PATH 中。");
+      }
+      if (error.message.includes("ETIMEDOUT")) {
+        throw new Error("获取页面超时。请检查 URL 是否可访问，或稍后重试。");
+      }
+      throw new Error(`获取页面失败: ${error.message}`);
     }
     throw error;
   }
@@ -162,6 +217,61 @@ server.registerTool(
         content: [{
           type: "text",
           text: `任务执行出错: ${errorMessage}`
+        }]
+      };
+    }
+  }
+);
+
+// 注册 kimi-fetch 工具
+server.registerTool(
+  "kimi-fetch",
+  {
+    title: "kimi-fetch",
+    description: `从指定 URL 获取网页内容，并以结构化的 markdown 格式返回。
+
+kimi-fetch 会：
+- 获取页面的完整 HTML 内容
+- 提取核心信息（标题、正文、关键数据）
+- 过滤广告和无关内容
+- 返回格式化的 markdown
+
+参数：
+  - url (string): 要获取内容的网页 URL 地址
+
+返回值：
+  结构化的 markdown 格式内容，包括页面标题、摘要、正文和关键链接。
+
+使用场景：
+  ✅ 获取文章、博客、文档的完整内容
+  ✅ 提取 API 文档、技术规范的详细信息
+  ✅ 从单个页面收集结构化数据
+
+注意事项：
+  - 需要安装 kimi CLI 工具
+  - 页面获取通常需要 10-30 秒
+  - 某些动态加载的页面可能内容不完整`,
+    inputSchema: FetchUrlSchema,
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true
+    }
+  },
+  async (params: FetchUrlInput) => {
+    try {
+      const result = await executeKimiFetch(params.url);
+
+      return {
+        content: [{ type: "text", text: result }]
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        content: [{
+          type: "text",
+          text: `获取页面出错: ${errorMessage}`
         }]
       };
     }
