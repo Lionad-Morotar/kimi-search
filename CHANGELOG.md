@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-03-12
+
+### Added
+- 新增 `kimi-fetch` MCP 工具，支持更灵活的搜索功能
+- 添加 `prepublishOnly` 脚本，发布前自动执行构建
+
 ## [0.0.1] - 2026-03-10
 
 ### Added
