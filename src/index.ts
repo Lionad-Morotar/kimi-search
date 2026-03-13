@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * kimi-search MCP Server
+ * kimi-tools-mcp MCP Server
  *
  * 此服务器将 kimi 作为智能代理(agent)暴露给 MCP 客户端，
- * 支持执行复杂的搜索、分析和信息整合任务。
+ * 支持执行复杂的搜索、内容获取和信息整合任务。
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -72,13 +72,13 @@ async function executeKimiAgent(_instruction: string): Promise<string> {
   try {
     const { stdout } = await execFileAsync("kimi", [
       "-p",
-      instruction,
+      JSON.stringify(instruction),
       "--print",
       "--output-format",
       "stream-json",
       "--final-message-only"
     ], {
-      timeout: 180000, // 3 分钟超时，给 agent 足够时间完成复杂任务
+      timeout: 300000,
       maxBuffer: 10 * 1024 * 1024 // 10MB 缓冲区
     });
 
@@ -119,13 +119,13 @@ URL: ${url}
   try {
     const { stdout } = await execFileAsync("kimi", [
       "-p",
-      instruction,
+      JSON.stringify(instruction),
       "--print",
       "--output-format",
       "stream-json",
       "--final-message-only"
     ], {
-      timeout: 40000,
+      timeout: 120000,
       maxBuffer: 10 * 1024 * 1024 // 10MB 缓冲区
     });
 
@@ -146,7 +146,7 @@ URL: ${url}
 
 // 创建 MCP 服务器实例
 const server = new McpServer({
-  name: "kimi-search-mcp-server",
+  name: "kimi-tools-mcp",
   version: "0.0.1"
 });
 
@@ -282,7 +282,7 @@ kimi-fetch 会：
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("kimi-search MCP Server 正在通过 stdio 运行");
+  console.error("kimi-tools-mcp Server 正在通过 stdio 运行");
 }
 
 main().catch(error => {

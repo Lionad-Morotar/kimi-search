@@ -1,15 +1,15 @@
-# Kimi Search MCP Server
+# Kimi Tools MCP Server
 
-MCP 服务器，借助 kimi-cli 的力量实现网络搜索功能。
+MCP 服务器，借助 kimi-cli 的力量实现网络搜索和内容获取功能。
 
 ## config
 
 ```json
 {
   "mcpServers": {
-    "kimi-search": {
+    "kimi-tools-mcp": {
       "command": "npx",
-      "args": ["-y", "@lionad/kimi-search"]
+      "args": ["-y", "@lionad/kimi-tools-mcp"]
     }
   }
 }
