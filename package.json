@@ -1,6 +1,6 @@
 {
   "name": "@lionad/kimi-tools-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for kimi tools integration (search & fetch)",
   "type": "module",
   "main": "dist/index.js",
